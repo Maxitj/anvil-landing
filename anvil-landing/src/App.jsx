@@ -3,15 +3,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
   ChevronRight,
-  BarChart,
-  Bot,
-  Link as LinkIcon,
-  MessageSquare,
-  Shield,
+  ArrowLeftRight,
+  BarChart3,
+  Banknote,
+  Landmark,
+  Droplets,
+  FileSearch,
+  BellRing,
   Sparkles,
   Rocket,
   Wallet,
-  Coins,
+  Bot,
 } from "lucide-react";
 
 // ---------- Base UI ----------
@@ -78,7 +80,7 @@ const Card = ({ title, icon, children, footer }) => (
 
 // ---------- Page ----------
 export default function ANVILLanding() {
-  // rotating tagline: "Forge " + (your future | your finance | crypto)
+  // rotating tagline after "Forge "
   const words = ["your future", "your finance", "crypto"];
   const [idx, setIdx] = useState(0);
   useEffect(() => {
@@ -127,7 +129,7 @@ export default function ANVILLanding() {
         </Container>
       </header>
 
-      {/* HERO — left-aligned, ANVIL on top, Forge fixed + rotating words */}
+      {/* HERO — left aligned */}
       <section className="relative py-20 md:py-28">
         <Container>
           <div className="max-w-4xl">
@@ -149,11 +151,15 @@ export default function ANVILLanding() {
                 </AnimatePresence>
               </div>
             </div>
+            {/* tagline from your reference image */}
+            <p className="mt-6 max-w-2xl text-lg text-neutral-300">
+              Making Web3 accessible to everyone through conversational finance.
+            </p>
           </div>
         </Container>
       </section>
 
-      {/* WHAT YOU CAN DO — 8 compact cards */}
+      {/* WHAT YOU CAN DO — 8 cards, staggered layout */}
       <Section
         id="capabilities"
         eyebrow="What you can do"
@@ -161,39 +167,67 @@ export default function ANVILLanding() {
         subtitle="Free beta. No tiers. Route capital with guidance and clear trade-offs."
       >
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          <Card title="Buy & Sell" icon={<ChevronRight className="h-4 w-4 text-neutral-200" />}>
-            Smart routing across venues with gas and slippage shown up front.
-          </Card>
-          <Card title="Stake & Restake" icon={<Sparkles className="h-4 w-4 text-neutral-200" />}>
-            Compare liquid staking and restaking options and allocate in one confirmation.
-          </Card>
-          <Card title="Earn on Cash" icon={<BarChart className="h-4 w-4 text-neutral-200" />}>
-            Send stablecoins to money markets with improvement thresholds (no noisy hopping).
-          </Card>
-          <Card title="High-Yield Vaults" icon={<Rocket className="h-4 w-4 text-neutral-200" />}>
-            Track maturities and roll positions forward at the best net-yield window.
-          </Card>
-          <Card title="Liquidity Pools" icon={<LinkIcon className="h-4 w-4 text-neutral-200" />}>
-            Pair suggestions with correlation hints and backtests before you commit.
-          </Card>
-          <Card title="RWAs & Treasuries" icon={<Coins className="h-4 w-4 text-neutral-200" />}>
-            Explore tokenized funds/treasuries as they move from pilots to production.
-          </Card>
-          <Card title="Explain Positions" icon={<MessageSquare className="h-4 w-4 text-neutral-200" />}>
-            Paste an address or tx; get a plain-English explanation and risks.
-          </Card>
-          <Card title="Alerts & Reports" icon={<Shield className="h-4 w-4 text-neutral-200" />}>
-            Weekly summaries, maturity pings, risk alerts—always know what’s next.
-          </Card>
+          {[
+            {
+              t: "Buy & Sell",
+              d: "Smart routing across venues with gas and slippage shown up front.",
+              i: <ArrowLeftRight className="h-4 w-4 text-neutral-200" />,
+              off: "lg:mt-0",
+            },
+            {
+              t: "Stake & Restake",
+              d: "Compare liquid staking and restaking; allocate in one confirmation.",
+              i: <Sparkles className="h-4 w-4 text-neutral-200" />,
+              off: "lg:mt-8",
+            },
+            {
+              t: "Earn on Cash",
+              d: "Send stablecoins to money markets with improvement thresholds.",
+              i: <Banknote className="h-4 w-4 text-neutral-200" />,
+              off: "lg:-mt-6",
+            },
+            {
+              t: "High-Yield Vaults",
+              d: "Track maturities and roll positions at the best net-yield window.",
+              i: <Rocket className="h-4 w-4 text-neutral-200" />,
+              off: "lg:mt-4",
+            },
+            {
+              t: "Liquidity Pools",
+              d: "Pair suggestions with correlation hints and backtests before you commit.",
+              i: <Droplets className="h-4 w-4 text-neutral-200" />,
+              off: "lg:mt-2",
+            },
+            {
+              t: "RWAs & Treasuries",
+              d: "Explore tokenized funds/treasuries as they move to production.",
+              i: <Landmark className="h-4 w-4 text-neutral-200" />,
+              off: "lg:mt-10",
+            },
+            {
+              t: "Explain Positions",
+              d: "Paste an address or tx; get a plain-English explanation and risks.",
+              i: <FileSearch className="h-4 w-4 text-neutral-200" />,
+              off: "lg:-mt-4",
+            },
+            {
+              t: "Alerts & Reports",
+              d: "Weekly summaries, maturity pings, risk alerts—always know what’s next.",
+              i: <BellRing className="h-4 w-4 text-neutral-200" />,
+              off: "lg:mt-6",
+            },
+          ].map((c, i) => (
+            <div key={i} className={c.off}>
+              <Card title={c.t} icon={c.i}>
+                {c.d}
+              </Card>
+            </div>
+          ))}
         </div>
       </Section>
 
-      {/* GET STARTED — marketing headline + four steps */}
-      <Section
-        id="get-started"
-        eyebrow="Get started"
-        title="Connect with ANVIL in four easy steps"
-      >
+      {/* GET STARTED — marketing title + four steps */}
+      <Section id="get-started" eyebrow="Get started" title="Connect with ANVIL in four easy steps">
         <ol className="grid gap-6 md:grid-cols-4">
           {[
             {
@@ -209,7 +243,7 @@ export default function ANVILLanding() {
             {
               t: "Plan",
               d: "See a simple plan with net yield after gas and slippage.",
-              i: <BarChart className="h-4 w-4 text-neutral-200" />,
+              i: <BarChart3 className="h-4 w-4 text-neutral-200" />,
             },
             {
               t: "Act",
