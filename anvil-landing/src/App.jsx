@@ -46,8 +46,11 @@ const Button = ({ children, href = "#", variant = "primary", className = "", ...
   );
 };
 
+/* OPAQUE card so background doesn’t bleed through */
 const Card = ({ title, icon, children, className = "" }) => (
-  <div className={`rounded-2xl bg-white/[0.04] p-6 ring-1 ring-white/10 hover:ring-white/20 transition ${className}`}>
+  <div
+    className={`h-full min-h-[190px] rounded-2xl bg-neutral-900 p-6 ring-1 ring-white/10 hover:ring-white/20 transition ${className}`}
+  >
     <div className="mb-3 flex items-center gap-3">
       {icon}
       {title && <h3 className="text-base md:text-lg font-semibold text-white">{title}</h3>}
@@ -56,15 +59,13 @@ const Card = ({ title, icon, children, className = "" }) => (
   </div>
 );
 
-/* --------- FONDO de código (canvas animado, sin imágenes) --------- */
+/* --------- Animated code background (canvas, no images) --------- */
 const CodeBackground = () => {
   const ref = useRef(null);
   const settings = useMemo(() => ({ gx: 22, gy: 28, font: 16, speed: 22 }), []);
-
   useEffect(() => {
     const canvas = ref.current;
     const ctx = canvas.getContext("2d");
-
     const setSize = () => {
       const dpr = Math.max(1, window.devicePixelRatio || 1);
       canvas.width = Math.floor(window.innerWidth * dpr);
@@ -76,7 +77,6 @@ const CodeBackground = () => {
 
     const cols = () => Math.ceil(window.innerWidth / settings.gx) + 2;
     const rows = () => Math.ceil(window.innerHeight / settings.gy) + 2;
-
     let grid = [];
     const rebuild = () => {
       grid = Array.from({ length: rows() }, () =>
@@ -85,12 +85,9 @@ const CodeBackground = () => {
     };
     rebuild();
 
-    let off = 0;
-    let last = performance.now();
-
+    let off = 0, last = performance.now();
     const loop = (t) => {
-      const dt = (t - last) / 1000;
-      last = t;
+      const dt = (t - last) / 1000; last = t;
       off = (off + settings.speed * dt) % (settings.gx * 2);
 
       ctx.fillStyle = "rgb(0,0,0)";
@@ -98,43 +95,32 @@ const CodeBackground = () => {
 
       ctx.font = `${settings.font}px ui-monospace, SFMono-Regular, Menlo, monospace`;
       ctx.fillStyle = "rgba(255,255,255,0.14)";
-
-      const r = rows();
-      const c = cols();
+      const r = rows(), c = cols();
       if (!grid.length || grid.length !== r || grid[0].length !== c) rebuild();
 
       for (let y = 0; y < r; y++) {
         const py = 20 + y * settings.gy;
         for (let x = 0; x < c; x++) {
-          const px =
-            ((x * settings.gx - off + window.innerWidth + settings.gx) %
-              (window.innerWidth + settings.gx)) - settings.gx;
+          const px = ((x * settings.gx - off + window.innerWidth + settings.gx) %
+            (window.innerWidth + settings.gx)) - settings.gx;
           ctx.fillText(grid[y][x], px, py);
         }
       }
-
-      // viñeta para contraste
       const grd = ctx.createLinearGradient(0, 0, 0, window.innerHeight);
       grd.addColorStop(0, "rgba(0,0,0,0.45)");
       grd.addColorStop(1, "rgba(0,0,0,0.25)");
       ctx.fillStyle = grd;
       ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-
       requestAnimationFrame(loop);
     };
     const id = requestAnimationFrame(loop);
-
-    return () => {
-      cancelAnimationFrame(id);
-      window.removeEventListener("resize", setSize);
-    };
+    return () => { cancelAnimationFrame(id); window.removeEventListener("resize", setSize); };
   }, [settings]);
 
-  // fixed para que cubra TODA la página al hacer scroll
   return <canvas ref={ref} className="fixed inset-0 -z-10" />;
 };
 
-/* ---------------- Phone mock (pasos) ---------------- */
+/* ---------------- Phone mock (steps) ---------------- */
 const PhoneMock = () => (
   <div className="mx-auto w-full max-w-sm rounded-[2.2rem] border border-white/10 bg-gradient-to-b from-neutral-900 to-black p-3 shadow-xl">
     <div className="mx-auto mb-3 h-6 w-28 rounded-full bg-neutral-800" />
@@ -190,14 +176,14 @@ const Ticker = ({ items, duration = 45 }) => {
   );
 };
 
-/* ---------- Animaciones reveal ---------- */
+/* ---------- Reveal helpers ---------- */
 const gridReveal = {
   hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, when: "beforeChildren", staggerChildren: 0.06 } },
 };
 const itemReveal = { hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
-/* ---------------- Página ---------------- */
+/* ---------------- Page ---------------- */
 export default function ANVILLanding() {
   const words = ["your future", "your finance", "crypto"];
   const [idx, setIdx] = useState(0);
@@ -230,7 +216,7 @@ export default function ANVILLanding() {
               <span className="text-lg font-semibold tracking-wide">ANVIL</span>
             </a>
             <nav className="hidden items-center gap-6 md:flex">
-              <a href="#capabilities" className="text-sm text-neutral-300 hover:text-white">What you can do</a>
+              <a href="#bundle" className="text-sm text-neutral-300 hover:text-white">Product bundle</a>
               <a href="#miss-out" className="text-sm text-neutral-300 hover:text-white">Why most miss out</a>
               <a href="#get-started" className="text-sm text-neutral-300 hover:text-white">Get started</a>
               <a href="#why-now" className="text-sm text-neutral-300 hover:text-white">Why now</a>
@@ -268,8 +254,8 @@ export default function ANVILLanding() {
             </p>
           </div>
 
-          {/* “Clarity over complexity” — más abajo (~2 cm) y justo antes de las 8 cajas */}
-          <div className="mt-28 md:mt-32"> 
+          {/* “Clarity over complexity” — visible on load */}
+          <div className="mt-28 md:mt-32">
             <h3 className="text-2xl md:text-3xl font-semibold">Clarity over complexity</h3>
             <p className="mt-3 max-w-3xl text-neutral-300">
               One conversational surface that explains, compares and executes—so you can allocate
@@ -285,17 +271,22 @@ export default function ANVILLanding() {
         </Container>
       </section>
 
-      {/* ESPACIADOR grande: mantiene las 8 cajas debajo del pliegue al cargar */}
-      <div aria-hidden className="h-24 md:h-32 lg:h-40" />
+      {/* SMALL spacer so cards start right when you scroll */}
+      <div aria-hidden className="h-10 md:h-14" />
 
-      {/* WHAT YOU CAN DO — las 8 cajas: MISMO tamaño, reveal al hacer scroll una sola vez */}
-      <Section id="capabilities" eyebrow="What you can do with Anvil" className="pt-0">
+      {/* PRODUCT BUNDLE — 8 opaque cards; reveal once when scrolling */}
+      <Section
+        id="bundle"
+        eyebrow="The Anvil App"
+        title="Product bundle"
+        className="pt-0"
+      >
         <motion.div
           variants={gridReveal}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.45 }} // aparece solo cuando se scrollea y no re-aparece al volver arriba
-          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 items-stretch"
+          viewport={{ once: true, amount: 0.18 }}  /* triggers right after first scroll */
+          className="grid items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-4"
         >
           {[
             { t: "Buy & Sell", d: "Smart routing across venues with gas and slippage shown up front.", i: <ArrowLeftRight className="h-4 w-4 text-neutral-200" /> },
@@ -308,15 +299,13 @@ export default function ANVILLanding() {
             { t: "Alerts & Reports", d: "Weekly summaries, maturity pings and risk alerts.", i: <BellRing className="h-4 w-4 text-neutral-200" /> },
           ].map((c, i) => (
             <motion.div key={i} variants={itemReveal} className="h-full">
-              <Card title={c.t} icon={c.i} className="h-full min-h-[190px] flex flex-col" >
-                {c.d}
-              </Card>
+              <Card title={c.t} icon={c.i}>{c.d}</Card>
             </motion.div>
           ))}
         </motion.div>
       </Section>
 
-      {/* WHY MOST PEOPLE MISS OUT (antes “Problem”) */}
+      {/* WHY MOST PEOPLE MISS OUT */}
       <Section
         id="miss-out"
         eyebrow="Why most people miss out"
@@ -324,7 +313,7 @@ export default function ANVILLanding() {
         subtitle="Wallets, venues, tokens, gas, yields—most people default to the familiar and miss DeFi’s best opportunities. Anvil turns noise into a clear, guided plan."
       />
 
-      {/* GET STARTED — pasos verticales + teléfono */}
+      {/* GET STARTED */}
       <Section id="get-started" eyebrow="Getting started" title="Four simple steps">
         <div className="grid gap-10 md:grid-cols-2">
           <ol className="space-y-5">
@@ -353,22 +342,14 @@ export default function ANVILLanding() {
         </div>
       </Section>
 
-      {/* WHY NOW — ticker horizontal */}
+      {/* WHY NOW — ticker */}
       <Section
         id="why-now"
         eyebrow="Why now"
         title="Programmable finance is moving mainstream"
         subtitle="Policy clarity, tokenized assets, mainstream spot ETFs and AI-native finance are converging. Anvil turns those forces into simple, trusted action."
       >
-        <Ticker
-          items={[
-            { label: "GENIUS Act", sub: "Policy clarity", icon: <Banknote className="h-4 w-4 text-neutral-200" /> },
-            { label: "Tokenized Securities", sub: "Pilots → production", icon: <Landmark className="h-4 w-4 text-neutral-200" /> },
-            { label: "Spot ETFs", sub: "Flows & advisors", icon: <BarChart3 className="h-4 w-4 text-neutral-200" /> },
-            { label: "AI-Native Finance", sub: "Conversational UX", icon: <Bot className="h-4 w-4 text-neutral-200" /> },
-          ]}
-          duration={45}
-        />
+        <Ticker items={whyNowItems} duration={45} />
       </Section>
 
       {/* JOIN US */}
@@ -391,7 +372,9 @@ export default function ANVILLanding() {
               Join us <ArrowRight className="h-4 w-4" />
             </Button>
           </form>
-          <p className="mt-3 text-xs text-neutral-400">By joining you agree to receive product updates. We never sell data.</p>
+          <p className="mt-3 text-xs text-neutral-400">
+            By joining you agree to receive product updates. We never sell data.
+          </p>
         </div>
       </Section>
 
@@ -407,7 +390,9 @@ export default function ANVILLanding() {
             <span className="font-semibold text-white">ANVIL</span>
             <span className="text-neutral-500">© {new Date().getFullYear()}</span>
           </div>
-          <div className="text-xs text-neutral-500">Anvil is a research and product company. Nothing here is financial advice.</div>
+          <div className="text-xs text-neutral-500">
+            Anvil is a research and product company. Nothing here is financial advice.
+          </div>
         </Container>
       </footer>
     </div>
