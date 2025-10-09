@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
-  ChevronRight,
   ArrowLeftRight,
-  BarChart3,
   Banknote,
   Landmark,
   Droplets,
@@ -14,9 +12,11 @@ import {
   Rocket,
   Wallet,
   Bot,
+  BarChart3,
+  ChevronRight,
 } from "lucide-react";
 
-// ---------- Base UI ----------
+/* -------------------- Base UI -------------------- */
 const Container = ({ children, className = "" }) => (
   <div className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 ${className}`}>
     {children}
@@ -37,22 +37,14 @@ const Section = ({ id, eyebrow, title, subtitle, children, className = "" }) => 
             {title}
           </h2>
         )}
-        {subtitle && (
-          <p className="mt-4 text-base md:text-lg text-neutral-300">{subtitle}</p>
-        )}
+        {subtitle && <p className="mt-4 text-base md:text-lg text-neutral-300">{subtitle}</p>}
       </div>
       <div className="mt-10">{children}</div>
     </Container>
   </section>
 );
 
-const Button = ({
-  children,
-  href = "#",
-  variant = "primary",
-  className = "",
-  ...props
-}) => {
+const Button = ({ children, href = "#", variant = "primary", className = "", ...props }) => {
   const base =
     "inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black";
   const styles = {
@@ -67,20 +59,116 @@ const Button = ({
   );
 };
 
-const Card = ({ title, icon, children, footer }) => (
+const Card = ({ title, icon, children }) => (
   <div className="rounded-2xl bg-white/[0.04] p-6 ring-1 ring-white/10 hover:ring-white/20 transition">
     <div className="mb-3 flex items-center gap-3">
       {icon}
       {title && <h3 className="text-base md:text-lg font-semibold text-white">{title}</h3>}
     </div>
     <div className="text-neutral-300 text-sm leading-relaxed">{children}</div>
-    {footer && <div className="mt-5">{footer}</div>}
   </div>
 );
 
-// ---------- Page ----------
+/* -------------------- Background (numbers pattern) -------------------- */
+const NumbersBackdrop = () => (
+  <svg
+    className="pointer-events-none fixed inset-0 -z-10 h-full w-full opacity-[0.08]"
+    aria-hidden
+  >
+    <defs>
+      <pattern id="digits" width="160" height="64" patternUnits="userSpaceOnUse">
+        <rect width="160" height="64" fill="black" />
+        <text
+          x="0"
+          y="24"
+          fill="white"
+          fontSize="16"
+          fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+          opacity="0.9"
+        >
+          00 01 10 11 20 21 30 31 40 41 50
+        </text>
+        <text
+          x="0"
+          y="48"
+          fill="white"
+          fontSize="16"
+          fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+          opacity="0.8"
+        >
+          FF E8 76 3A 9C 2D B0 4F 8A 1E 64
+        </text>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#digits)" />
+  </svg>
+);
+
+/* -------------------- Phone mock for steps -------------------- */
+const PhoneMock = () => (
+  <div className="mx-auto w-full max-w-sm rounded-[2.2rem] border border-white/10 bg-gradient-to-b from-neutral-900 to-black p-3 shadow-xl">
+    <div className="mx-auto mb-3 h-6 w-28 rounded-full bg-neutral-800" />
+    <div className="rounded-[1.8rem] border border-white/10 bg-black p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="h-6 w-24 rounded-md bg-white/10" />
+        <div className="h-6 w-10 rounded-md bg-white/10" />
+      </div>
+      {/* fake chart */}
+      <div className="mb-4 h-28 w-full rounded-lg bg-gradient-to-b from-white/10 to-white/0 p-3">
+        <div className="flex h-full items-end gap-1">
+          {[12, 24, 18, 34, 28, 40, 22, 36, 30, 44].map((h, i) => (
+            <div key={i} className="w-6 rounded bg-white/20" style={{ height: `${h}px` }} />
+          ))}
+        </div>
+      </div>
+      {/* positions */}
+      <div className="space-y-2">
+        {["Stable vault • 8.1% APY", "Restake • 5.3% APY", "LP pair • 12.4% APR"].map(
+          (t, i) => (
+            <div
+              key={i}
+              className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-neutral-300"
+            >
+              <span>{t}</span>
+              <span className="text-white">• • •</span>
+            </div>
+          )
+        )}
+      </div>
+    </div>
+  </div>
+);
+
+/* -------------------- Scrolling ticker (Bloomberg-style) -------------------- */
+const Ticker = ({ items, duration = 40 }) => {
+  // duplicate items to create a seamless loop
+  const loop = [...items, ...items];
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
+      <motion.div
+        className="flex items-center gap-6 whitespace-nowrap py-4"
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{ duration, ease: "linear", repeat: Infinity }}
+      >
+        {loop.map((it, i) => (
+          <div
+            key={i}
+            className="mx-1 flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1"
+          >
+            <span className="grid h-7 w-7 place-items-center rounded-md bg-white/10">
+              {it.icon}
+            </span>
+            <span className="text-sm font-semibold text-white">{it.label}</span>
+            <span className="text-xs text-neutral-400">• {it.sub}</span>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+};
+
+/* -------------------- Page -------------------- */
 export default function ANVILLanding() {
-  // rotating tagline after "Forge "
   const words = ["your future", "your finance", "crypto"];
   const [idx, setIdx] = useState(0);
   useEffect(() => {
@@ -88,20 +176,23 @@ export default function ANVILLanding() {
     return () => clearInterval(t);
   }, []);
 
+  const whyNowItems = [
+    { label: "GENIUS Act", sub: "Policy clarity", icon: <Banknote className="h-4 w-4 text-neutral-200" /> },
+    { label: "Tokenized Securities", sub: "Pilots → production", icon: <Landmark className="h-4 w-4 text-neutral-200" /> },
+    { label: "Spot ETFs", sub: "Flows & advisors", icon: <BarChart3 className="h-4 w-4 text-neutral-200" /> },
+    { label: "AI-Native Finance", sub: "Conversational UX", icon: <Bot className="h-4 w-4 text-neutral-200" /> },
+  ];
+
   return (
-    <div className="min-h-screen scroll-smooth bg-gradient-to-b from-black via-neutral-950 to-black text-white selection:bg-white selection:text-black">
-      {/* Subtle background glow */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute -top-24 left-1/4 h-[38rem] w-[38rem] rounded-full bg-white/5 blur-3xl" />
-      </div>
+    <div className="min-h-screen scroll-smooth bg-black text-white selection:bg-white selection:text-black">
+      <NumbersBackdrop />
 
       {/* NAV */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-black/40 backdrop-blur supports-[backdrop-filter]:bg-black/40">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-black/40 backdrop-blur">
         <Container>
           <div className="flex h-16 items-center justify-between">
             <a href="#" className="flex items-center gap-3">
               <div className="grid h-9 w-9 place-items-center rounded-xl bg-white/5 ring-1 ring-white/15">
-                {/* Simple anvil mark */}
                 <svg viewBox="0 0 64 64" className="h-5 w-5 text-white" fill="currentColor">
                   <path d="M12 24h40v6H38l-4 6H30l-4-6H12zM20 40h24l4 6H16l4-6z" />
                 </svg>
@@ -109,18 +200,11 @@ export default function ANVILLanding() {
               <span className="text-lg font-semibold tracking-wide">ANVIL</span>
             </a>
             <nav className="hidden items-center gap-6 md:flex">
-              <a href="#capabilities" className="text-sm text-neutral-300 hover:text-white">
-                What you can do
-              </a>
-              <a href="#get-started" className="text-sm text-neutral-300 hover:text-white">
-                Get started
-              </a>
-              <a href="#why-now" className="text-sm text-neutral-300 hover:text-white">
-                Why now
-              </a>
-              <a href="#contact" className="text-sm text-neutral-300 hover:text-white">
-                Join us
-              </a>
+              <a href="#capabilities" className="text-sm text-neutral-300 hover:text-white">Product</a>
+              <a href="#problem" className="text-sm text-neutral-300 hover:text-white">Problem</a>
+              <a href="#get-started" className="text-sm text-neutral-300 hover:text-white">Get started</a>
+              <a href="#why-now" className="text-sm text-neutral-300 hover:text-white">Why now</a>
+              <a href="#contact" className="text-sm text-neutral-300 hover:text-white">Join us</a>
             </nav>
             <Button href="#contact" variant="primary">
               Join us <ArrowRight className="h-4 w-4" />
@@ -129,7 +213,7 @@ export default function ANVILLanding() {
         </Container>
       </header>
 
-      {/* HERO — left aligned */}
+      {/* HERO */}
       <section className="relative py-20 md:py-28">
         <Container>
           <div className="max-w-4xl">
@@ -151,121 +235,104 @@ export default function ANVILLanding() {
                 </AnimatePresence>
               </div>
             </div>
-            {/* tagline from your reference image */}
             <p className="mt-6 max-w-2xl text-lg text-neutral-300">
-              Making Web3 accessible to everyone through conversational finance.
+              Making Web3 Accessible to Everyone through Conversational Finance.
             </p>
           </div>
         </Container>
       </section>
 
-      {/* WHAT YOU CAN DO — 8 cards, staggered layout */}
+      {/* MARKETING BAND */}
       <Section
-        id="capabilities"
-        eyebrow="What you can do"
-        title="One place to learn, decide and act"
-        subtitle="Free beta. No tiers. Route capital with guidance and clear trade-offs."
+        title="Clarity over complexity"
+        subtitle="One conversational surface that explains, compares and executes—so you can allocate with confidence, not guesswork."
       >
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            {
-              t: "Buy & Sell",
-              d: "Smart routing across venues with gas and slippage shown up front.",
-              i: <ArrowLeftRight className="h-4 w-4 text-neutral-200" />,
-              off: "lg:mt-0",
-            },
-            {
-              t: "Stake & Restake",
-              d: "Compare liquid staking and restaking; allocate in one confirmation.",
-              i: <Sparkles className="h-4 w-4 text-neutral-200" />,
-              off: "lg:mt-8",
-            },
-            {
-              t: "Earn on Cash",
-              d: "Send stablecoins to money markets with improvement thresholds.",
-              i: <Banknote className="h-4 w-4 text-neutral-200" />,
-              off: "lg:-mt-6",
-            },
-            {
-              t: "High-Yield Vaults",
-              d: "Track maturities and roll positions at the best net-yield window.",
-              i: <Rocket className="h-4 w-4 text-neutral-200" />,
-              off: "lg:mt-4",
-            },
-            {
-              t: "Liquidity Pools",
-              d: "Pair suggestions with correlation hints and backtests before you commit.",
-              i: <Droplets className="h-4 w-4 text-neutral-200" />,
-              off: "lg:mt-2",
-            },
-            {
-              t: "RWAs & Treasuries",
-              d: "Explore tokenized funds/treasuries as they move to production.",
-              i: <Landmark className="h-4 w-4 text-neutral-200" />,
-              off: "lg:mt-10",
-            },
-            {
-              t: "Explain Positions",
-              d: "Paste an address or tx; get a plain-English explanation and risks.",
-              i: <FileSearch className="h-4 w-4 text-neutral-200" />,
-              off: "lg:-mt-4",
-            },
-            {
-              t: "Alerts & Reports",
-              d: "Weekly summaries, maturity pings, risk alerts—always know what’s next.",
-              i: <BellRing className="h-4 w-4 text-neutral-200" />,
-              off: "lg:mt-6",
-            },
-          ].map((c, i) => (
-            <div key={i} className={c.off}>
-              <Card title={c.t} icon={c.i}>
-                {c.d}
-              </Card>
-            </div>
-          ))}
+        <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-400">
+          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Plain-English explanations</span>
+          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Smart venue routing</span>
+          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Net-yield after gas</span>
+          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Alerts & roll-forwards</span>
         </div>
       </Section>
 
-      {/* GET STARTED — marketing title + four steps */}
-      <Section id="get-started" eyebrow="Get started" title="Connect with ANVIL in four easy steps">
-        <ol className="grid gap-6 md:grid-cols-4">
-          {[
-            {
-              t: "Connect",
-              d: "Create a wallet or connect yours. Read-only first, action when ready.",
-              i: <Wallet className="h-4 w-4 text-neutral-200" />,
-            },
-            {
-              t: "Profile",
-              d: "Set risk and goals. ANVIL adapts venues and defaults to your vibe.",
-              i: <Bot className="h-4 w-4 text-neutral-200" />,
-            },
-            {
-              t: "Plan",
-              d: "See a simple plan with net yield after gas and slippage.",
-              i: <BarChart3 className="h-4 w-4 text-neutral-200" />,
-            },
-            {
-              t: "Act",
-              d: "One confirmation to allocate, rebalance and exit. Alerts keep you in control.",
-              i: <ChevronRight className="h-4 w-4 text-neutral-200" />,
-            },
-          ].map((s, i) => (
-            <li
-              key={i}
-              className="relative rounded-2xl bg-white/[0.04] p-6 ring-1 ring-white/10"
-            >
-              <span className="absolute -top-3 left-4 grid h-8 w-8 place-items-center rounded-full bg-white text-black text-sm font-bold">
-                {i + 1}
-              </span>
-              <div className="mb-2 flex items-center gap-2 text-white">
-                {s.i}
-                <h3 className="text-base font-semibold">{s.t}</h3>
-              </div>
-              <p className="text-sm text-neutral-300">{s.d}</p>
-            </li>
-          ))}
-        </ol>
+      {/* CAPABILITIES — 4 across + 4 below */}
+      <Section id="capabilities">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <Card title="Buy & Sell" icon={<ArrowLeftRight className="h-4 w-4 text-neutral-200" />}>
+            Smart routing across venues with gas and slippage shown up front.
+          </Card>
+          <Card title="Stake & Restake" icon={<Sparkles className="h-4 w-4 text-neutral-200" />}>
+            Compare liquid staking and restaking; allocate in one confirmation.
+          </Card>
+          <Card title="Earn on Cash" icon={<Banknote className="h-4 w-4 text-neutral-200" />}>
+            Send stablecoins to money markets with improvement thresholds.
+          </Card>
+          <Card title="High-Yield Vaults" icon={<Rocket className="h-4 w-4 text-neutral-200" />}>
+            Track maturities and roll positions at the best net-yield window.
+          </Card>
+          <Card title="Liquidity Pools" icon={<Droplets className="h-4 w-4 text-neutral-200" />}>
+            Pair suggestions with correlation hints and backtests before you commit.
+          </Card>
+          <Card title="RWAs & Treasuries" icon={<Landmark className="h-4 w-4 text-neutral-200" />}>
+            Explore tokenized funds and treasuries as they move to production.
+          </Card>
+          <Card title="Explain Positions" icon={<FileSearch className="h-4 w-4 text-neutral-200" />}>
+            Paste an address or tx; get a plain-English explanation and risks.
+          </Card>
+          <Card title="Alerts & Reports" icon={<BellRing className="h-4 w-4 text-neutral-200" />}>
+            Weekly summaries, maturity pings and risk alerts—always know what’s next.
+          </Card>
+        </div>
+      </Section>
+
+      {/* THE PROBLEM */}
+      <Section
+        id="problem"
+        eyebrow="The problem"
+        title="Crypto’s upside is massive, but complexity locks most people out"
+        subtitle="Too many tokens, protocols and choices moving too fast. Even simple actions—choosing a wallet, funding it, deciding where to deploy—feel like a maze. People default to the familiar and miss the best DeFi opportunities."
+      />
+
+      {/* GET STARTED — vertical steps + phone */}
+      <Section id="get-started" title="Get started in four easy steps">
+        <div className="grid gap-10 md:grid-cols-2">
+          <ol className="space-y-5">
+            {[
+              {
+                t: "Connect",
+                d: "Create a wallet or connect yours. Read-only first—act when ready.",
+                i: <Wallet className="h-4 w-4 text-neutral-200" />,
+              },
+              {
+                t: "Profile",
+                d: "Set risk and goals. ANVIL adapts venues and sensible defaults to your vibe.",
+                i: <Bot className="h-4 w-4 text-neutral-200" />,
+              },
+              {
+                t: "Plan",
+                d: "See a clear plan with net yield after gas and slippage. Understand the trade-offs.",
+                i: <BarChart3 className="h-4 w-4 text-neutral-200" />,
+              },
+              {
+                t: "Act",
+                d: "One confirmation to allocate, rebalance and exit. Alerts keep you in control.",
+                i: <ChevronRight className="h-4 w-4 text-neutral-200" />,
+              },
+            ].map((s, i) => (
+              <li key={i} className="relative rounded-2xl bg-white/[0.04] p-6 ring-1 ring-white/10">
+                <div className="mb-2 flex items-center gap-2 text-white">
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-black text-sm font-bold">
+                    {i + 1}
+                  </span>
+                  {s.i}
+                  <h3 className="text-base font-semibold">{s.t}</h3>
+                </div>
+                <p className="text-sm text-neutral-300">{s.d}</p>
+              </li>
+            ))}
+          </ol>
+          <PhoneMock />
+        </div>
         <div className="mt-8">
           <Button href="#contact" variant="primary">
             Get started <ArrowRight className="h-4 w-4" />
@@ -273,27 +340,14 @@ export default function ANVILLanding() {
         </div>
       </Section>
 
-      {/* WHY NOW */}
+      {/* WHY NOW — scrolling ticker */}
       <Section
         id="why-now"
         eyebrow="Why now"
         title="Programmable finance is moving mainstream"
         subtitle="Policy clarity, tokenized assets, mainstream spot ETFs and AI-native finance are converging. ANVIL turns those forces into simple, trusted action."
       >
-        <div className="grid gap-6 md:grid-cols-4">
-          <Card title="Policy clarity">
-            Stablecoin and tokenization frameworks reduce uncertainty and open rails.
-          </Card>
-          <Card title="Tokenized securities">
-            Funds and treasuries move from pilots to production. Collateral and settlement evolve.
-          </Card>
-          <Card title="Mainstream adoption">
-            Flagship assets and their ETFs bring flows and advisor-led participation.
-          </Card>
-          <Card title="AI-native finance">
-            People expect guidance they can talk to, not dashboards they must learn.
-          </Card>
-        </div>
+        <Ticker items={whyNowItems} duration={45} />
       </Section>
 
       {/* JOIN US */}
@@ -317,12 +371,7 @@ export default function ANVILLanding() {
               placeholder="you@domain.com"
               className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-white/30"
             />
-            <Button
-              href="#"
-              onClick={(e) => e.preventDefault()}
-              variant="primary"
-              className="justify-center"
-            >
+            <Button href="#" onClick={(e) => e.preventDefault()} variant="primary" className="justify-center">
               Join us <ArrowRight className="h-4 w-4" />
             </Button>
           </form>
