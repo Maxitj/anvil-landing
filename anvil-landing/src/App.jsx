@@ -152,10 +152,11 @@ const PhoneMock = () => (
 );
 
 /* --------------- Ticker (Why now) --------------- */
-const Ticker = ({ items, duration = 45 }) => {
+/* -> made fully opaque gray & a bit faster */
+const Ticker = ({ items, duration = 30 }) => { // faster default
   const loop = [...items, ...items];
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
+    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900">
       <motion.div
         className="flex items-center gap-6 whitespace-nowrap py-4"
         animate={{ x: ["0%", "-50%"] }}
@@ -164,11 +165,13 @@ const Ticker = ({ items, duration = 45 }) => {
         {loop.map((it, i) => (
           <div
             key={i}
-            className="mx-1 flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1"
+            className="mx-1 flex items-center gap-2 rounded-full border border-white/10 bg-neutral-800 px-3 py-1"
           >
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-white/10">{it.icon}</span>
+            <span className="grid h-7 w-7 place-items-center rounded-md bg-neutral-700">
+              {it.icon}
+            </span>
             <span className="text-sm font-semibold text-white">{it.label}</span>
-            <span className="text-xs text-neutral-400">• {it.sub}</span>
+            <span className="text-xs text-neutral-300">• {it.sub}</span>
           </div>
         ))}
       </motion.div>
@@ -275,12 +278,7 @@ export default function ANVILLanding() {
       <div aria-hidden className="h-10 md:h-14" />
 
       {/* PRODUCT BUNDLE — 8 opaque cards; reveal once when scrolling */}
-      <Section
-        id="bundle"
-        eyebrow="The Anvil App"
-        title="Product bundle"
-        className="pt-0"
-      >
+      <Section id="bundle" eyebrow="The Anvil App" title="Product bundle" className="pt-0">
         <motion.div
           variants={gridReveal}
           initial="hidden"
@@ -313,7 +311,7 @@ export default function ANVILLanding() {
         subtitle="Wallets, venues, tokens, gas, yields—most people default to the familiar and miss DeFi’s best opportunities. Anvil turns noise into a clear, guided plan."
       />
 
-      {/* GET STARTED */}
+      {/* GET STARTED — steps cards now opaque gray */}
       <Section id="get-started" eyebrow="Getting started" title="Four simple steps">
         <div className="grid gap-10 md:grid-cols-2">
           <ol className="space-y-5">
@@ -323,7 +321,7 @@ export default function ANVILLanding() {
               { t: "Plan", d: "See a clear plan with net yield after gas and slippage. Understand trade-offs.", i: <BarChart3 className="h-4 w-4 text-neutral-200" /> },
               { t: "Act", d: "One confirmation to allocate, rebalance and exit. Alerts keep you in control.", i: <ChevronRight className="h-4 w-4 text-neutral-200" /> },
             ].map((s, i) => (
-              <li key={i} className="relative rounded-2xl bg-white/[0.04] p-6 ring-1 ring-white/10">
+              <li key={i} className="relative rounded-2xl bg-neutral-900 p-6 ring-1 ring-white/10">
                 <div className="mb-2 flex items-center gap-2 text-white">
                   <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-black text-sm font-bold">
                     {i + 1}
@@ -342,14 +340,14 @@ export default function ANVILLanding() {
         </div>
       </Section>
 
-      {/* WHY NOW — ticker */}
+      {/* WHY NOW — ticker (opaque gray + faster) */}
       <Section
         id="why-now"
         eyebrow="Why now"
         title="Programmable finance is moving mainstream"
         subtitle="Policy clarity, tokenized assets, mainstream spot ETFs and AI-native finance are converging. Anvil turns those forces into simple, trusted action."
       >
-        <Ticker items={whyNowItems} duration={45} />
+        <Ticker items={whyNowItems} duration={26} />
       </Section>
 
       {/* JOIN US */}
