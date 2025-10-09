@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -16,7 +16,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-/* -------------- Base UI -------------- */
+/* -------------------- Base UI -------------------- */
 const Container = ({ children, className = "" }) => (
   <div className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 ${className}`}>
     {children}
@@ -69,17 +69,74 @@ const Card = ({ title, icon, children }) => (
   </div>
 );
 
-/* -------------- Background image -------------- */
-const BackgroundImage = () => (
-  <div aria-hidden className="fixed inset-0 -z-10">
-    {/* change the url if you use another filename */}
-    <div className="absolute inset-0 bg-[url('/bg-binary.jpg')] bg-cover bg-center" />
-    {/* dark overlay for readability */}
-    <div className="absolute inset-0 bg-black/70" />
+/* -------------------- Code-generated background -------------------- */
+/** Binary tiles that scroll left like a subtle animated wallpaper. No image files. */
+const BinaryTile = ({ width = 1280, height = 320, rowGap = 28 }) => {
+  const rows = useMemo(() => {
+    const out = [];
+    const cols = Math.ceil(width / 14); // characters per row (approx)
+    for (let r = 0; r < Math.ceil(height / rowGap); r++) {
+      let s = "";
+      for (let c = 0; c < cols; c++) s += Math.random() < 0.5 ? "0 " : "1 ";
+      out.push(s);
+    }
+    return out;
+  }, [width, height, rowGap]);
+
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      <rect width={width} height={height} fill="black" />
+      {rows.map((text, i) => (
+        <text
+          key={i}
+          x="12"
+          y={20 + i * rowGap}
+          fill="white"
+          opacity="0.12"
+          fontSize="16"
+          fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+        >
+          {text}
+        </text>
+      ))}
+      {/* top gradient vignette for depth */}
+      <defs>
+        <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="black" stopOpacity="0.4" />
+          <stop offset="1" stopColor="black" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <rect width={width} height={height} fill="url(#fade)" />
+    </svg>
+  );
+};
+
+const BinaryBackground = () => (
+  <div aria-hidden className="fixed inset-0 -z-10 overflow-hidden bg-black">
+    {/* two tiles side-by-side in a looping strip */}
+    <motion.div
+      className="flex h-full w-[200%]"
+      animate={{ x: ["0%", "-50%"] }}
+      transition={{ duration: 80, ease: "linear", repeat: Infinity }}
+    >
+      <div className="w-1/2 h-full">
+        {/* stack tiles vertically to cover tall screens */}
+        <BinaryTile width={1920} height={360} />
+        <BinaryTile width={1920} height={360} />
+        <BinaryTile width={1920} height={360} />
+      </div>
+      <div className="w-1/2 h-full">
+        <BinaryTile width={1920} height={360} />
+        <BinaryTile width={1920} height={360} />
+        <BinaryTile width={1920} height={360} />
+      </div>
+    </motion.div>
+    {/* dark overlay for contrast */}
+    <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/65 via-black/70 to-black/80" />
   </div>
 );
 
-/* -------------- Phone mock -------------- */
+/* -------------------- Phone mock for steps -------------------- */
 const PhoneMock = () => (
   <div className="mx-auto w-full max-w-sm rounded-[2.2rem] border border-white/10 bg-gradient-to-b from-neutral-900 to-black p-3 shadow-xl">
     <div className="mx-auto mb-3 h-6 w-28 rounded-full bg-neutral-800" />
@@ -110,7 +167,7 @@ const PhoneMock = () => (
   </div>
 );
 
-/* -------------- Scrolling ticker (Why Now) -------------- */
+/* -------------------- Scrolling ticker (Why Now) -------------------- */
 const Ticker = ({ items, duration = 45 }) => {
   const loop = [...items, ...items];
   return (
@@ -135,14 +192,21 @@ const Ticker = ({ items, duration = 45 }) => {
   );
 };
 
-/* -------------- Reveal helpers -------------- */
+/* -------------------- Reveal helpers for cards -------------------- */
 const gridReveal = {
   hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, when: "beforeChildren", staggerChildren: 0.06 } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, when: "beforeChildren", staggerChildren: 0.06 },
+  },
 };
-const itemReveal = { hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
+const itemReveal = {
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+};
 
-/* -------------- Page -------------- */
+/* -------------------- Page -------------------- */
 export default function ANVILLanding() {
   const words = ["your future", "your finance", "crypto"];
   const [idx, setIdx] = useState(0);
@@ -160,7 +224,7 @@ export default function ANVILLanding() {
 
   return (
     <div className="min-h-screen scroll-smooth text-white">
-      <BackgroundImage />
+      <BinaryBackground />
 
       {/* NAV */}
       <header className="sticky top-0 z-40 border-b border-white/10 bg-black/40 backdrop-blur">
@@ -188,8 +252,8 @@ export default function ANVILLanding() {
         </Container>
       </header>
 
-      {/* HERO (full height so cards are not visible on first glance) */}
-      <section className="relative min-h-[100vh] py-20 md:py-28">
+      {/* HERO — shorter so "Clarity over complexity" is visible on first view */}
+      <section className="relative py-16 md:py-20">
         <Container>
           <div className="max-w-4xl">
             <h1 className="text-6xl md:text-7xl font-semibold tracking-tight">ANVIL</h1>
@@ -214,38 +278,43 @@ export default function ANVILLanding() {
               Making Web3 Accessible to Everyone through Conversational Finance.
             </p>
           </div>
+
+          {/* Marketing band — visible immediately */}
+          <div className="mt-10">
+            <h3 className="text-2xl md:text-3xl font-semibold">Clarity over complexity</h3>
+            <p className="mt-3 max-w-3xl text-neutral-300">
+              One conversational surface that explains, compares and executes—so you can allocate
+              with confidence, not guesswork.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-neutral-300">
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                Plain-English explanations
+              </span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                Smart venue routing
+              </span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                Net-yield after gas
+              </span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                Alerts & roll-forwards
+              </span>
+            </div>
+          </div>
         </Container>
       </section>
 
-      {/* MARKETING BAND ("complexity" phrase) */}
-      <Section
-        title="Clarity over complexity"
-        subtitle="One conversational surface that explains, compares and executes—so you can allocate with confidence, not guesswork."
-        className="pt-0"
-      >
-        <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-300">
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Plain-English explanations</span>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Smart venue routing</span>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Net-yield after gas</span>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Alerts & roll-forwards</span>
-        </div>
-      </Section>
-
-      {/* CAPABILITIES — placed right after the phrase, but revealed on scroll */}
+      {/* CAPABILITIES — placed very close to the band, but reveal on scroll */}
       <Section id="capabilities" className="pt-0">
         <motion.div
           variants={gridReveal}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, amount: 0.25 }}
           className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
         >
           {[
-            {
-              t: "Buy & Sell",
-              d: "Smart routing across venues with gas and slippage shown up front.",
-              i: <ArrowLeftRight className="h-4 w-4 text-neutral-200" />,
-            },
+            { t: "Buy & Sell", d: "Smart routing across venues with gas and slippage shown up front.", i: <ArrowLeftRight className="h-4 w-4 text-neutral-200" /> },
             { t: "Stake & Restake", d: "Compare liquid staking and restaking; allocate in one confirmation.", i: <Sparkles className="h-4 w-4 text-neutral-200" /> },
             { t: "Earn on Cash", d: "Send stablecoins to money markets with improvement thresholds.", i: <Banknote className="h-4 w-4 text-neutral-200" /> },
             { t: "High-Yield Vaults", d: "Track maturities and roll positions at the best net-yield window.", i: <Rocket className="h-4 w-4 text-neutral-200" /> },
@@ -276,7 +345,7 @@ export default function ANVILLanding() {
             {[
               { t: "Connect", d: "Create a wallet or connect yours. Read-only first—act when ready.", i: <Wallet className="h-4 w-4 text-neutral-200" /> },
               { t: "Profile", d: "Set risk and goals. ANVIL adapts venues and sensible defaults to your vibe.", i: <Bot className="h-4 w-4 text-neutral-200" /> },
-              { t: "Plan", d: "See a clear plan with net yield after gas and slippage. Understand the trade-offs.", i: <BarChart3 className="h-4 w-4 text-neutral-200" /> },
+              { t: "Plan", d: "See a clear plan with net yield after gas and slippage. Understand trade-offs.", i: <BarChart3 className="h-4 w-4 text-neutral-200" /> },
               { t: "Act", d: "One confirmation to allocate, rebalance and exit. Alerts keep you in control.", i: <ChevronRight className="h-4 w-4 text-neutral-200" /> },
             ].map((s, i) => (
               <li key={i} className="relative rounded-2xl bg-white/[0.04] p-6 ring-1 ring-white/10">
@@ -307,12 +376,7 @@ export default function ANVILLanding() {
         title="Programmable finance is moving mainstream"
         subtitle="Policy clarity, tokenized assets, mainstream spot ETFs and AI-native finance are converging. ANVIL turns those forces into simple, trusted action."
       >
-        <Ticker items={[
-          { label: "GENIUS Act", sub: "Policy clarity", icon: <Banknote className="h-4 w-4 text-neutral-200" /> },
-          { label: "Tokenized Securities", sub: "Pilots → production", icon: <Landmark className="h-4 w-4 text-neutral-200" /> },
-          { label: "Spot ETFs", sub: "Flows & advisors", icon: <BarChart3 className="h-4 w-4 text-neutral-200" /> },
-          { label: "AI-Native Finance", sub: "Conversational UX", icon: <Bot className="h-4 w-4 text-neutral-200" /> },
-        ]} duration={45} />
+        <Ticker items={whyNowItems} duration={45} />
       </Section>
 
       {/* JOIN US */}
