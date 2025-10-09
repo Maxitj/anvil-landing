@@ -1,26 +1,13 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowRight,
-  ArrowLeftRight,
-  Banknote,
-  Landmark,
-  Droplets,
-  FileSearch,
-  BellRing,
-  Sparkles,
-  Rocket,
-  Wallet,
-  Bot,
-  BarChart3,
-  ChevronRight,
+  ArrowRight, ArrowLeftRight, Banknote, Landmark, Droplets, FileSearch,
+  BellRing, Sparkles, Rocket, Wallet, Bot, BarChart3, ChevronRight,
 } from "lucide-react";
 
-/* -------------------- Base UI -------------------- */
+/* ---------------- Base UI ---------------- */
 const Container = ({ children, className = "" }) => (
-  <div className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 ${className}`}>
-    {children}
-  </div>
+  <div className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 ${className}`}>{children}</div>
 );
 
 const Section = ({ id, eyebrow, title, subtitle, children, className = "" }) => (
@@ -59,8 +46,8 @@ const Button = ({ children, href = "#", variant = "primary", className = "", ...
   );
 };
 
-const Card = ({ title, icon, children }) => (
-  <div className="rounded-2xl bg-white/[0.04] p-6 ring-1 ring-white/10 hover:ring-white/20 transition">
+const Card = ({ title, icon, children, className = "" }) => (
+  <div className={`rounded-2xl bg-white/[0.04] p-6 ring-1 ring-white/10 hover:ring-white/20 transition ${className}`}>
     <div className="mb-3 flex items-center gap-3">
       {icon}
       {title && <h3 className="text-base md:text-lg font-semibold text-white">{title}</h3>}
@@ -69,74 +56,85 @@ const Card = ({ title, icon, children }) => (
   </div>
 );
 
-/* -------------------- Code-generated background -------------------- */
-/** Binary tiles that scroll left like a subtle animated wallpaper. No image files. */
-const BinaryTile = ({ width = 1280, height = 320, rowGap = 28 }) => {
-  const rows = useMemo(() => {
-    const out = [];
-    const cols = Math.ceil(width / 14); // characters per row (approx)
-    for (let r = 0; r < Math.ceil(height / rowGap); r++) {
-      let s = "";
-      for (let c = 0; c < cols; c++) s += Math.random() < 0.5 ? "0 " : "1 ";
-      out.push(s);
-    }
-    return out;
-  }, [width, height, rowGap]);
+/* --------- FONDO de código (canvas animado, sin imágenes) --------- */
+const CodeBackground = () => {
+  const ref = useRef(null);
+  const settings = useMemo(() => ({ gx: 22, gy: 28, font: 16, speed: 22 }), []);
 
-  return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      <rect width={width} height={height} fill="black" />
-      {rows.map((text, i) => (
-        <text
-          key={i}
-          x="12"
-          y={20 + i * rowGap}
-          fill="white"
-          opacity="0.12"
-          fontSize="16"
-          fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
-        >
-          {text}
-        </text>
-      ))}
-      {/* top gradient vignette for depth */}
-      <defs>
-        <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="black" stopOpacity="0.4" />
-          <stop offset="1" stopColor="black" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <rect width={width} height={height} fill="url(#fade)" />
-    </svg>
-  );
+  useEffect(() => {
+    const canvas = ref.current;
+    const ctx = canvas.getContext("2d");
+
+    const setSize = () => {
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    setSize();
+    window.addEventListener("resize", setSize);
+
+    const cols = () => Math.ceil(window.innerWidth / settings.gx) + 2;
+    const rows = () => Math.ceil(window.innerHeight / settings.gy) + 2;
+
+    let grid = [];
+    const rebuild = () => {
+      grid = Array.from({ length: rows() }, () =>
+        Array.from({ length: cols() }, () => (Math.random() < 0.5 ? "0" : "1"))
+      );
+    };
+    rebuild();
+
+    let off = 0;
+    let last = performance.now();
+
+    const loop = (t) => {
+      const dt = (t - last) / 1000;
+      last = t;
+      off = (off + settings.speed * dt) % (settings.gx * 2);
+
+      ctx.fillStyle = "rgb(0,0,0)";
+      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+      ctx.font = `${settings.font}px ui-monospace, SFMono-Regular, Menlo, monospace`;
+      ctx.fillStyle = "rgba(255,255,255,0.14)";
+
+      const r = rows();
+      const c = cols();
+      if (!grid.length || grid.length !== r || grid[0].length !== c) rebuild();
+
+      for (let y = 0; y < r; y++) {
+        const py = 20 + y * settings.gy;
+        for (let x = 0; x < c; x++) {
+          const px =
+            ((x * settings.gx - off + window.innerWidth + settings.gx) %
+              (window.innerWidth + settings.gx)) - settings.gx;
+          ctx.fillText(grid[y][x], px, py);
+        }
+      }
+
+      // viñeta para contraste
+      const grd = ctx.createLinearGradient(0, 0, 0, window.innerHeight);
+      grd.addColorStop(0, "rgba(0,0,0,0.45)");
+      grd.addColorStop(1, "rgba(0,0,0,0.25)");
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+      requestAnimationFrame(loop);
+    };
+    const id = requestAnimationFrame(loop);
+
+    return () => {
+      cancelAnimationFrame(id);
+      window.removeEventListener("resize", setSize);
+    };
+  }, [settings]);
+
+  // fixed para que cubra TODA la página al hacer scroll
+  return <canvas ref={ref} className="fixed inset-0 -z-10" />;
 };
 
-const BinaryBackground = () => (
-  <div aria-hidden className="fixed inset-0 -z-10 overflow-hidden bg-black">
-    {/* two tiles side-by-side in a looping strip */}
-    <motion.div
-      className="flex h-full w-[200%]"
-      animate={{ x: ["0%", "-50%"] }}
-      transition={{ duration: 80, ease: "linear", repeat: Infinity }}
-    >
-      <div className="w-1/2 h-full">
-        {/* stack tiles vertically to cover tall screens */}
-        <BinaryTile width={1920} height={360} />
-        <BinaryTile width={1920} height={360} />
-        <BinaryTile width={1920} height={360} />
-      </div>
-      <div className="w-1/2 h-full">
-        <BinaryTile width={1920} height={360} />
-        <BinaryTile width={1920} height={360} />
-        <BinaryTile width={1920} height={360} />
-      </div>
-    </motion.div>
-    {/* dark overlay for contrast */}
-    <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/65 via-black/70 to-black/80" />
-  </div>
-);
-
-/* -------------------- Phone mock for steps -------------------- */
+/* ---------------- Phone mock (pasos) ---------------- */
 const PhoneMock = () => (
   <div className="mx-auto w-full max-w-sm rounded-[2.2rem] border border-white/10 bg-gradient-to-b from-neutral-900 to-black p-3 shadow-xl">
     <div className="mx-auto mb-3 h-6 w-28 rounded-full bg-neutral-800" />
@@ -167,7 +165,7 @@ const PhoneMock = () => (
   </div>
 );
 
-/* -------------------- Scrolling ticker (Why Now) -------------------- */
+/* --------------- Ticker (Why now) --------------- */
 const Ticker = ({ items, duration = 45 }) => {
   const loop = [...items, ...items];
   return (
@@ -192,21 +190,14 @@ const Ticker = ({ items, duration = 45 }) => {
   );
 };
 
-/* -------------------- Reveal helpers for cards -------------------- */
+/* ---------- Animaciones reveal ---------- */
 const gridReveal = {
   hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, when: "beforeChildren", staggerChildren: 0.06 },
-  },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, when: "beforeChildren", staggerChildren: 0.06 } },
 };
-const itemReveal = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-};
+const itemReveal = { hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
-/* -------------------- Page -------------------- */
+/* ---------------- Página ---------------- */
 export default function ANVILLanding() {
   const words = ["your future", "your finance", "crypto"];
   const [idx, setIdx] = useState(0);
@@ -224,7 +215,7 @@ export default function ANVILLanding() {
 
   return (
     <div className="min-h-screen scroll-smooth text-white">
-      <BinaryBackground />
+      <CodeBackground />
 
       {/* NAV */}
       <header className="sticky top-0 z-40 border-b border-white/10 bg-black/40 backdrop-blur">
@@ -239,20 +230,18 @@ export default function ANVILLanding() {
               <span className="text-lg font-semibold tracking-wide">ANVIL</span>
             </a>
             <nav className="hidden items-center gap-6 md:flex">
-              <a href="#capabilities" className="text-sm text-neutral-300 hover:text-white">Product</a>
-              <a href="#problem" className="text-sm text-neutral-300 hover:text-white">Problem</a>
+              <a href="#capabilities" className="text-sm text-neutral-300 hover:text-white">What you can do</a>
+              <a href="#miss-out" className="text-sm text-neutral-300 hover:text-white">Why most miss out</a>
               <a href="#get-started" className="text-sm text-neutral-300 hover:text-white">Get started</a>
               <a href="#why-now" className="text-sm text-neutral-300 hover:text-white">Why now</a>
               <a href="#contact" className="text-sm text-neutral-300 hover:text-white">Join us</a>
             </nav>
-            <Button href="#contact" variant="primary">
-              Join us <ArrowRight className="h-4 w-4" />
-            </Button>
+            <Button href="#contact" variant="primary">Join us <ArrowRight className="h-4 w-4" /></Button>
           </div>
         </Container>
       </header>
 
-      {/* HERO — shorter so "Clarity over complexity" is visible on first view */}
+      {/* HERO */}
       <section className="relative py-16 md:py-20">
         <Container>
           <div className="max-w-4xl">
@@ -279,39 +268,34 @@ export default function ANVILLanding() {
             </p>
           </div>
 
-          {/* Marketing band — visible immediately */}
-          <div className="mt-10">
+          {/* “Clarity over complexity” — más abajo (~2 cm) y justo antes de las 8 cajas */}
+          <div className="mt-28 md:mt-32"> 
             <h3 className="text-2xl md:text-3xl font-semibold">Clarity over complexity</h3>
             <p className="mt-3 max-w-3xl text-neutral-300">
               One conversational surface that explains, compares and executes—so you can allocate
               with confidence, not guesswork.
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-neutral-300">
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                Plain-English explanations
-              </span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                Smart venue routing
-              </span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                Net-yield after gas
-              </span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                Alerts & roll-forwards
-              </span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Plain-English explanations</span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Smart venue routing</span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Net-yield after gas</span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Alerts & roll-forwards</span>
             </div>
           </div>
         </Container>
       </section>
 
-      {/* CAPABILITIES — placed very close to the band, but reveal on scroll */}
-      <Section id="capabilities" className="pt-0">
+      {/* ESPACIADOR grande: mantiene las 8 cajas debajo del pliegue al cargar */}
+      <div aria-hidden className="h-24 md:h-32 lg:h-40" />
+
+      {/* WHAT YOU CAN DO — las 8 cajas: MISMO tamaño, reveal al hacer scroll una sola vez */}
+      <Section id="capabilities" eyebrow="What you can do with Anvil" className="pt-0">
         <motion.div
           variants={gridReveal}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.25 }}
-          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
+          viewport={{ once: true, amount: 0.45 }} // aparece solo cuando se scrollea y no re-aparece al volver arriba
+          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 items-stretch"
         >
           {[
             { t: "Buy & Sell", d: "Smart routing across venues with gas and slippage shown up front.", i: <ArrowLeftRight className="h-4 w-4 text-neutral-200" /> },
@@ -323,28 +307,30 @@ export default function ANVILLanding() {
             { t: "Explain Positions", d: "Paste an address or tx; get a plain-English explanation and risks.", i: <FileSearch className="h-4 w-4 text-neutral-200" /> },
             { t: "Alerts & Reports", d: "Weekly summaries, maturity pings and risk alerts.", i: <BellRing className="h-4 w-4 text-neutral-200" /> },
           ].map((c, i) => (
-            <motion.div key={i} variants={itemReveal}>
-              <Card title={c.t} icon={c.i}>{c.d}</Card>
+            <motion.div key={i} variants={itemReveal} className="h-full">
+              <Card title={c.t} icon={c.i} className="h-full min-h-[190px] flex flex-col" >
+                {c.d}
+              </Card>
             </motion.div>
           ))}
         </motion.div>
       </Section>
 
-      {/* THE PROBLEM */}
+      {/* WHY MOST PEOPLE MISS OUT (antes “Problem”) */}
       <Section
-        id="problem"
-        eyebrow="The problem"
-        title="Crypto’s upside is massive, but complexity locks most people out"
-        subtitle="Too many tokens, protocols and choices moving too fast. Even simple actions—choosing a wallet, funding it, deciding where to deploy—feel like a maze. People default to the familiar and miss the best DeFi opportunities."
+        id="miss-out"
+        eyebrow="Why most people miss out"
+        title="Too many choices, moving too fast"
+        subtitle="Wallets, venues, tokens, gas, yields—most people default to the familiar and miss DeFi’s best opportunities. Anvil turns noise into a clear, guided plan."
       />
 
-      {/* GET STARTED — vertical steps + phone */}
-      <Section id="get-started" title="Get started in four easy steps">
+      {/* GET STARTED — pasos verticales + teléfono */}
+      <Section id="get-started" eyebrow="Getting started" title="Four simple steps">
         <div className="grid gap-10 md:grid-cols-2">
           <ol className="space-y-5">
             {[
               { t: "Connect", d: "Create a wallet or connect yours. Read-only first—act when ready.", i: <Wallet className="h-4 w-4 text-neutral-200" /> },
-              { t: "Profile", d: "Set risk and goals. ANVIL adapts venues and sensible defaults to your vibe.", i: <Bot className="h-4 w-4 text-neutral-200" /> },
+              { t: "Profile", d: "Set risk and goals. Anvil adapts venues and sensible defaults to your vibe.", i: <Bot className="h-4 w-4 text-neutral-200" /> },
               { t: "Plan", d: "See a clear plan with net yield after gas and slippage. Understand trade-offs.", i: <BarChart3 className="h-4 w-4 text-neutral-200" /> },
               { t: "Act", d: "One confirmation to allocate, rebalance and exit. Alerts keep you in control.", i: <ChevronRight className="h-4 w-4 text-neutral-200" /> },
             ].map((s, i) => (
@@ -363,50 +349,49 @@ export default function ANVILLanding() {
           <PhoneMock />
         </div>
         <div className="mt-8">
-          <Button href="#contact" variant="primary">
-            Get started <ArrowRight className="h-4 w-4" />
-          </Button>
+          <Button href="#contact" variant="primary">Get started <ArrowRight className="h-4 w-4" /></Button>
         </div>
       </Section>
 
-      {/* WHY NOW — scrolling ticker */}
+      {/* WHY NOW — ticker horizontal */}
       <Section
         id="why-now"
         eyebrow="Why now"
         title="Programmable finance is moving mainstream"
-        subtitle="Policy clarity, tokenized assets, mainstream spot ETFs and AI-native finance are converging. ANVIL turns those forces into simple, trusted action."
+        subtitle="Policy clarity, tokenized assets, mainstream spot ETFs and AI-native finance are converging. Anvil turns those forces into simple, trusted action."
       >
-        <Ticker items={whyNowItems} duration={45} />
+        <Ticker
+          items={[
+            { label: "GENIUS Act", sub: "Policy clarity", icon: <Banknote className="h-4 w-4 text-neutral-200" /> },
+            { label: "Tokenized Securities", sub: "Pilots → production", icon: <Landmark className="h-4 w-4 text-neutral-200" /> },
+            { label: "Spot ETFs", sub: "Flows & advisors", icon: <BarChart3 className="h-4 w-4 text-neutral-200" /> },
+            { label: "AI-Native Finance", sub: "Conversational UX", icon: <Bot className="h-4 w-4 text-neutral-200" /> },
+          ]}
+          duration={45}
+        />
       </Section>
 
       {/* JOIN US */}
       <Section
         id="contact"
         eyebrow="Join the Anvil community"
-        title="Be the first to forge with ANVIL"
+        title="Be the first to forge with Anvil"
         subtitle="Free beta. No tiers. We’re focused on trust and real utility."
       >
         <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-8">
           <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              alert("Thanks! We will be in touch soon.");
-            }}
+            onSubmit={(e) => { e.preventDefault(); alert("Thanks! We will be in touch soon."); }}
             className="grid gap-3 sm:grid-cols-[1fr_auto]"
           >
             <input
-              required
-              type="email"
-              placeholder="you@domain.com"
+              required type="email" placeholder="you@domain.com"
               className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-white/30"
             />
             <Button href="#" onClick={(e) => e.preventDefault()} variant="primary" className="justify-center">
               Join us <ArrowRight className="h-4 w-4" />
             </Button>
           </form>
-          <p className="mt-3 text-xs text-neutral-400">
-            By joining you agree to receive product updates. We never sell data.
-          </p>
+          <p className="mt-3 text-xs text-neutral-400">By joining you agree to receive product updates. We never sell data.</p>
         </div>
       </Section>
 
@@ -422,9 +407,7 @@ export default function ANVILLanding() {
             <span className="font-semibold text-white">ANVIL</span>
             <span className="text-neutral-500">© {new Date().getFullYear()}</span>
           </div>
-          <div className="text-xs text-neutral-500">
-            ANVIL is a research and product company. Nothing here is financial advice.
-          </div>
+          <div className="text-xs text-neutral-500">Anvil is a research and product company. Nothing here is financial advice.</div>
         </Container>
       </footer>
     </div>
