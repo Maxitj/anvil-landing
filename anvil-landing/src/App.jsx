@@ -1,188 +1,231 @@
-"use client";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
-import React, { useEffect, useMemo, useState } from "react";
-
-const heroRotating = [
-  "create me a new wallet",
-  "buy this token",
-  "swap my USDC into another coin",
-  "help my savings earn more without risk",
-  "put my money in a high-yield vault",
-  "send money to a friend",
+const HERO_ROTATING = [
+  "create me a new wallet.",
+  "buy this token.",
+  "swap my USDC into another coin.",
+  "help my savings earn more without risk.",
+  "put my money in a high-yield vault.",
+  "send money to a friend.",
 ];
 
-type Feature = { title: string; lines: string[] };
-
-const features: Feature[] = [
-  { title: "Wallet", lines: ["Create your wallet in minutes.", "Self-custody, ready to use, set up for you."] },
-  { title: "Buy / Sell / Swap", lines: ["Buy and sell crypto in an instant.", "Swap between coins without leaving the app."] },
-  { title: "Earn / Vaults", lines: ["Make your money earn more, automatically.", "Rampy routes your funds into higher-yield vaults with clear risk controls."] },
-  { title: "Send / Receive", lines: ["Send and receive money like it’s cash.", "Pay friends in seconds, without the friction."] },
-  { title: "Find opportunities", lines: ["Discover what to buy and execute on it.", "Find assets and act with one confirmation."] },
+const FEATURES = [
+  {
+    title: "Wallet",
+    lines: [
+      "Create your wallet in minutes.",
+      "Self-custody, ready to use, set up for you.",
+    ],
+  },
+  {
+    title: "Buy / Sell / Swap",
+    lines: [
+      "Buy and sell crypto in an instant.",
+      "Swap between coins without leaving the app.",
+    ],
+  },
+  {
+    title: "Earn / Vaults",
+    lines: [
+      "Make your money earn more, automatically.",
+      "Rampy routes your funds into higher-yield vaults with clear risk controls.",
+    ],
+  },
+  {
+    title: "Send / Receive",
+    lines: [
+      "Send and receive money like it’s cash.",
+      "Pay friends in seconds, without the friction.",
+    ],
+  },
+  {
+    title: "Find opportunities",
+    lines: [
+      "Find what to buy and execute on it.",
+      "Discover assets and beyond, then act with one confirmation.",
+    ],
+  },
 ];
 
-function PillButton({ children }: { children: React.ReactNode }) {
+function PrimaryButton({ children }) {
   return (
-    <button className="rounded-full px-6 py-3 text-sm font-medium bg-violet-300 text-black hover:bg-violet-200 transition shadow">
+    <button className="rounded-full px-6 py-3 text-sm font-medium bg-violet-300 text-black hover:bg-violet-200 transition shadow-[0_10px_30px_rgba(165,140,255,0.25)]">
       {children}
     </button>
   );
 }
 
-function Card({ title, lines }: Feature) {
+function Card({ title, lines, tone = "dark" }) {
+  const base =
+    "rounded-[32px] border p-6 w-[360px] sm:w-[380px] shrink-0";
+  const styles =
+    tone === "purple"
+      ? "bg-violet-200 text-black border-black/10"
+      : "bg-zinc-900/70 text-white border-white/10";
+
   return (
-    <div className="rounded-3xl bg-zinc-900/70 border border-white/10 p-6 w-[360px]">
-      <div className="text-white font-semibold">{title}</div>
-      <div className="mt-3 space-y-1 text-white/75 text-sm leading-relaxed">
+    <div className={`${base} ${styles}`}>
+      <div className="font-semibold">{title}</div>
+      <div className="mt-3 space-y-1 text-sm leading-relaxed opacity-80">
         {lines.map((l) => (
           <div key={l}>{l}</div>
         ))}
       </div>
+      <div className="mt-6 h-[120px] rounded-[24px] bg-black/10 border border-black/5 opacity-70" />
     </div>
   );
 }
 
-function IntentGraph() {
+function RotatingLine({ items, intervalMs = 2300 }) {
+  const [idx, setIdx] = useState(0);
+  const [phase, setPhase] = useState("in"); // "in" | "out"
+  const timeoutRef = useRef(null);
+
+  const maxLen = useMemo(
+    () => items.reduce((m, s) => Math.max(m, s.length), 0),
+    [items]
+  );
+
+  useEffect(() => {
+    const tick = () => {
+      setPhase("out");
+      timeoutRef.current = setTimeout(() => {
+        setIdx((x) => (x + 1) % items.length);
+        setPhase("in");
+      }, 220);
+    };
+
+    const id = setInterval(tick, intervalMs);
+    return () => {
+      clearInterval(id);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [items.length, intervalMs]);
+
+  return (
+    <span
+      className="inline-block align-baseline"
+      style={{ width: `${maxLen}ch` }}
+    >
+      <span
+        className={`inline-block ${
+          phase === "in" ? "anim-in" : "anim-out"
+        }`}
+      >
+        {items[idx]}
+      </span>
+    </span>
+  );
+}
+
+function Block4Engine() {
   return (
     <div className="relative rounded-[44px] bg-zinc-900/70 border border-white/10 p-10 overflow-hidden">
-      <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[520px] h-[520px] rounded-full bg-violet-500/20 blur-3xl" />
+      {/* Glow */}
+      <div className="pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 w-[680px] h-[680px] rounded-full bg-violet-500/20 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-[-220px] left-[10%] w-[520px] h-[520px] rounded-full bg-violet-500/10 blur-3xl" />
 
       <div className="relative">
-        <div className="text-white/80 text-sm">Rampy turns intent into execution.</div>
+        <div className="text-white/85 text-sm">
+          Rampy turns intent into execution:
+        </div>
 
-        <div className="mt-8 grid grid-cols-12 gap-6 items-center">
-          {/* Left node */}
-          <div className="col-span-3 rounded-3xl bg-black/30 border border-white/10 p-5">
+        <div className="mt-2 text-white/60 text-sm">
+          you describe the goal, Rampy chooses the path, and your strategy gets done
+          with clarity on what happened and why.
+        </div>
+
+        <div className="mt-10 grid grid-cols-12 gap-6 items-center">
+          {/* Left: Intent */}
+          <div className="col-span-12 lg:col-span-3 rounded-3xl bg-black/30 border border-white/10 p-5">
             <div className="text-white font-semibold">Intent</div>
-            <div className="mt-2 text-white/70 text-sm">You describe the goal</div>
+            <div className="mt-2 text-white/70 text-sm">
+              You describe the goal
+            </div>
           </div>
 
-          {/* Center engine */}
-          <div className="col-span-6 flex items-center justify-center relative">
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 600 200" preserveAspectRatio="none">
-              {/* connectors */}
-              <path d="M120 100 C200 100 200 100 260 100" stroke="rgba(255,255,255,0.25)" strokeWidth="2" fill="none" />
-              <path d="M340 60 C420 60 420 60 480 60" stroke="rgba(255,255,255,0.25)" strokeWidth="2" fill="none" />
-              <path d="M340 140 C420 140 420 140 480 140" stroke="rgba(255,255,255,0.25)" strokeWidth="2" fill="none" />
-              {/* tiny nodes */}
+          {/* Center: Engine + SVG connectors */}
+          <div className="col-span-12 lg:col-span-6 relative flex items-center justify-center py-6">
+            <svg
+              className="absolute inset-0 w-full h-full"
+              viewBox="0 0 800 260"
+              preserveAspectRatio="none"
+            >
+              {/* Left to engine */}
+              <path
+                d="M140 130 C250 130 250 130 340 130"
+                stroke="rgba(255,255,255,0.22)"
+                strokeWidth="2"
+                fill="none"
+              />
+
+              {/* Engine to right nodes */}
+              <path
+                d="M460 80 C560 80 560 80 660 80"
+                stroke="rgba(255,255,255,0.22)"
+                strokeWidth="2"
+                fill="none"
+              />
+              <path
+                d="M460 130 C560 130 560 130 660 130"
+                stroke="rgba(255,255,255,0.22)"
+                strokeWidth="2"
+                fill="none"
+              />
+              <path
+                d="M460 180 C560 180 560 180 660 180"
+                stroke="rgba(255,255,255,0.22)"
+                strokeWidth="2"
+                fill="none"
+              />
+
+              {/* Small routing nodes */}
               {[
-                [190, 100],
-                [230, 100],
-                [400, 60],
-                [440, 60],
-                [400, 140],
-                [440, 140],
+                [240, 130],
+                [290, 130],
+                [520, 80],
+                [580, 80],
+                [520, 130],
+                [580, 130],
+                [520, 180],
+                [580, 180],
               ].map(([x, y], i) => (
-                <circle key={i} cx={x} cy={y} r="4" fill="rgba(165,140,255,0.9)" />
+                <circle
+                  key={i}
+                  cx={x}
+                  cy={y}
+                  r="5"
+                  fill="rgba(165,140,255,0.9)"
+                />
+              ))}
+
+              {/* Extra tiny nodes around engine for "graph" feel */}
+              {[
+                [400, 45],
+                [430, 55],
+                [380, 205],
+                [420, 215],
+              ].map(([x, y], i) => (
+                <circle
+                  key={`tiny-${i}`}
+                  cx={x}
+                  cy={y}
+                  r="3.5"
+                  fill="rgba(255,255,255,0.25)"
+                />
               ))}
             </svg>
 
-            <div className="w-[180px] h-[180px] rounded-[48px] bg-black/40 border border-white/10 flex flex-col items-center justify-center">
-              <div className="text-white font-semibold tracking-wide">RAMPY</div>
-              <div className="text-white/60 text-xs mt-1">ENGINE</div>
-            </div>
-          </div>
-
-          {/* Right side nodes */}
-          <div className="col-span-3 space-y-6">
-            <div className="rounded-3xl bg-black/30 border border-white/10 p-5">
-              <div className="text-white font-semibold">Path</div>
-              <div className="mt-2 text-white/70 text-sm">Rampy chooses the path</div>
-            </div>
-            <div className="rounded-3xl bg-black/30 border border-white/10 p-5">
-              <div className="text-white font-semibold">Execution</div>
-              <div className="mt-2 text-white/70 text-sm">Your strategy gets done</div>
-            </div>
-            <div className="rounded-3xl bg-black/30 border border-white/10 p-5">
-              <div className="text-white font-semibold">Clarity</div>
-              <div className="mt-2 text-white/70 text-sm">Clarity on what happened and why</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function Page() {
-  const [heroIdx, setHeroIdx] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(() => setHeroIdx((x) => (x + 1) % heroRotating.length), 2200);
-    return () => clearInterval(t);
-  }, []);
-
-  const featureWindow = useMemo(() => {
-    // 3-visible carousel driven by heroIdx for simplicity
-    const start = heroIdx % features.length;
-    return [features[start], features[(start + 1) % features.length], features[(start + 2) % features.length]];
-  }, [heroIdx]);
-
-  return (
-    <main className="min-h-screen bg-[#0F0F14] text-white">
-      <div className="mx-auto max-w-6xl px-8 py-16">
-        {/* Block 1 */}
-        <section className="grid grid-cols-12 gap-10 items-center">
-          <div className="col-span-6">
-            <div className="text-6xl font-semibold leading-[1.0]">
-              <div>Rampy</div>
-              <div className="mt-3 text-white/80 text-4xl">{heroRotating[heroIdx]}</div>
-            </div>
-
-            <div className="mt-8 text-white/70 text-lg leading-relaxed">
-              <div>Rampy the next-generation engine for digital assets.</div>
-              <div>Tell Rampy what you want. It executes for you.</div>
-            </div>
-
-            <div className="mt-10 flex items-center gap-4">
-              <PillButton>Start talking now</PillButton>
-              <div className="text-white/50 text-sm">Conversation-first crypto execution</div>
-            </div>
-          </div>
-
-          <div className="col-span-6">
-            <div className="relative rounded-[44px] bg-zinc-900/70 border border-white/10 h-[460px] overflow-hidden flex items-center justify-center">
-              <div className="absolute w-[520px] h-[520px] rounded-full bg-violet-500/20 blur-3xl" />
-              <div className="relative w-[220px] h-[220px] rounded-[56px] bg-black/40 border border-white/10 flex items-center justify-center">
-                <div className="text-white/80 font-semibold">ghost</div>
+            <div className="relative w-[190px] h-[190px] rounded-[56px] bg-black/35 border border-white/10 flex flex-col items-center justify-center">
+              <div className="absolute inset-0 rounded-[56px] ring-1 ring-white/10" />
+              <div className="w-12 h-12 rounded-2xl bg-violet-300/90 flex items-center justify-center text-black font-semibold">
+                R
               </div>
+              <div className="mt-4 text-white font-semibold tracking-wide">
+                RAMPY
+              </div>
+              <div className="text-white/55 text-xs mt-1">ENGINE</div>
             </div>
           </div>
-        </section>
 
-        {/* Block 2 */}
-        <section className="py-20 text-center">
-          <div className="text-4xl font-semibold text-white/85">
-            Making digital assets accessible to everyone through a conversation-first app
-          </div>
-        </section>
-
-        {/* Block 3 */}
-        <section className="py-10">
-          <div className="text-2xl font-semibold">What Rampy unlocks</div>
-          <div className="mt-2 text-white/65">Everything you can do with one command</div>
-
-          <div className="mt-10 flex gap-6 overflow-hidden">
-            {featureWindow.map((f) => (
-              <Card key={f.title} {...f} />
-            ))}
-          </div>
-        </section>
-
-        {/* Block 4 */}
-        <section className="py-16">
-          <IntentGraph />
-        </section>
-
-        {/* Block 5 */}
-        <section className="py-16 text-center">
-          <div className="text-4xl font-semibold">Start now</div>
-          <div className="mt-6 flex justify-center">
-            <PillButton>Start talking</PillButton>
-          </div>
-          <div className="mt-3 text-white/55 text-sm">One command. One confirmation.</div>
-        </section>
-      </div>
-    </main>
-  );
-}
+          {/* Right: Path / Execution / Clarity */
